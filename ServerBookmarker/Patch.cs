@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -29,7 +29,7 @@ namespace ServerBookmarker
         }
 
 
-        private void ApplyPatch(HarmonyInstance harmonyInstance)
+        private void ApplyPatch(Harmony harmony)
         {
             var patchDescriptor = GetPatchDescriptor();
 
@@ -41,17 +41,17 @@ namespace ServerBookmarker
                     patchDescriptor.targetType.GetMethod(patchDescriptor.targetMethodName, patchDescriptor.targetMethodArguments)
                     : patchDescriptor.targetType.GetMethod(patchDescriptor.targetMethodName, ((BindingFlags)62));
 
-            harmonyInstance.Patch(targetMethod, new HarmonyMethod(GetType().GetMethod("Prefix")), new HarmonyMethod(GetType().GetMethod("Postfix")));
+            harmony.Patch(targetMethod, new HarmonyMethod(GetType().GetMethod("Prefix")), new HarmonyMethod(GetType().GetMethod("Postfix")));
         }
 
         public static void PatchAll(string id)
         {
-            HarmonyInstance harmonyInstance = HarmonyInstance.Create(id);
+            Harmony harmony = new Harmony(id);
 
             foreach (Type type in (from type in Assembly.GetExecutingAssembly().GetTypes()
                                    where type.IsClass && type.BaseType == typeof(Patch)
                                    select type))
-                ((Patch)Activator.CreateInstance(type)).ApplyPatch(harmonyInstance);
+                ((Patch)Activator.CreateInstance(type)).ApplyPatch(harmony);
 
         }
     }
